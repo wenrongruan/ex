@@ -1,5 +1,6 @@
+__pycache__/
+.env
+page_info.html
+search_result.html
+log.html
 node_modules/
-dist/
-debug-search*.js
-*.log
-.DS_Store
