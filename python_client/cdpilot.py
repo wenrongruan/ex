@@ -116,7 +116,7 @@ class CDPilot:
     async def click(self, selector):
         """Click an element."""
         print(f"Clicking {selector}...")
-        await self.evaluate(f"""
+        return await self.evaluate(f"""
             (function() {{
                 const el = document.querySelector('{selector}');
                 if (el) {{ el.click(); return true; }}
