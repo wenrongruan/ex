@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git config:*)",
+      "WebSearch",
+      "WebFetch(domain:browsermcp.io)",
+      "WebFetch(domain:developer.chrome.com)",
+      "Bash(git -C /home/公共下载/chrome-extension log --oneline -20)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(git rm:*)"
+    ]
+  }
+}
