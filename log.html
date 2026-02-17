@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CDPilot - Debug Log</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --accent: #ff5a36;
+        --panel: color-mix(in oklab, canvas 92%, canvasText 8%);
+        --border: color-mix(in oklab, canvasText 18%, transparent);
+        --muted: color-mix(in oklab, canvasText 70%, transparent);
+        --shadow: 0 10px 30px color-mix(in oklab, canvasText 18%, transparent);
+        font-family: ui-rounded, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Rounded",
+          "SF Pro Display", "Segoe UI", sans-serif;
+        line-height: 1.4;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: canvas;
+        color: canvasText;
+      }
+      .wrap {
+        max-width: 960px;
+        margin: 24px auto;
+        padding: 0 24px 48px 24px;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 16px;
+      }
+      h1 {
+        font-size: 18px;
+        margin: 0;
+      }
+      button {
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1px solid color-mix(in oklab, var(--accent) 55%, transparent);
+        background: linear-gradient(
+          180deg,
+          color-mix(in oklab, var(--accent) 80%, white 20%),
+          var(--accent)
+        );
+        color: white;
+        font-weight: 650;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      button:active {
+        transform: translateY(1px);
+      }
+      .log-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+        font-family: ui-monospace, Menlo, Monaco, Consolas, "SF Mono", monospace;
+      }
+      .log-table th {
+        text-align: left;
+        padding: 6px 10px;
+        border-bottom: 2px solid var(--border);
+        font-size: 11px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .log-table td {
+        padding: 4px 10px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: top;
+      }
+      .log-table tr[data-level="error"] td {
+        color: color-mix(in oklab, #ef4444 80%, canvasText 20%);
+      }
+      .log-table tr[data-level="warn"] td {
+        color: color-mix(in oklab, #f59e0b 80%, canvasText 20%);
+      }
+      .log-table tr[data-level="info"] td {
+        color: color-mix(in oklab, canvasText 80%, transparent);
+      }
+      .empty {
+        text-align: center;
+        padding: 32px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .ts {
+        white-space: nowrap;
+        color: var(--muted);
+      }
+      .level {
+        text-transform: uppercase;
+        font-weight: 600;
+        min-width: 48px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>Debug Log</h1>
+        <button id="refresh">Refresh</button>
+      </header>
+      <div id="log-container"></div>
+    </div>
+    <script src="log.js"></script>
+  </body>
+</html>
