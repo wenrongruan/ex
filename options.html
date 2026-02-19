@@ -182,6 +182,7 @@
         <div>
           <h1>CDPilot</h1>
           <p class="subtitle">Click the toolbar button on a tab to attach / detach.</p>
+          <p class="subtitle" style="color: color-mix(in oklab, canvasText 60%, transparent);">点击工具栏按钮来附加/分离标签页</p>
         </div>
       </header>
 
@@ -192,21 +193,37 @@
             If you see a red <code>!</code> badge on the extension icon, the relay server is not reachable.
             Start the CDP relay server on this machine, then click the toolbar button again.
           </p>
+          <p style="color: color-mix(in oklab, canvasText 70%, transparent);">
+            如果您在扩展程序图标上看到红色 <code>!</code> 徽章，说明中继服务器无法访问。请在此机器上启动 CDP 中继服务器，然后再次点击工具栏按钮。
+          </p>
           <p>
             See the project README for setup instructions.
+          </p>
+          <p style="color: color-mix(in oklab, canvasText 70%, transparent);">
+            查看项目 README 了解设置说明。
           </p>
         </div>
 
         <div class="card">
           <h2>Relay port</h2>
+          <h2 style="color: color-mix(in oklab, canvasText 70%, transparent); font-size: 13px; margin-top: -8px;">中继端口</h2>
           <label for="port">Port</label>
+          <label style="color: color-mix(in oklab, canvasText 70%, transparent); margin-top: -4px;">端口</label>
           <div class="row">
             <input id="port" inputmode="numeric" pattern="[0-9]*" />
             <button id="save" type="button">Save</button>
           </div>
+          <div class="row" style="margin-top: 6px;">
+            <button style="opacity: 0; pointer-events: none; width: 160px;"></button>
+            <div style="font-size: 12px; color: var(--muted);">保存</div>
+          </div>
           <div class="hint">
             Default: <code>18792</code>. Extension connects to: <code id="relay-url">http://127.0.0.1:&lt;port&gt;/</code>.
             Only change this if your relay server uses a different port.
+          </div>
+          <div class="hint" style="color: color-mix(in oklab, canvasText 70%, transparent);">
+            默认值：<code>18792</code>。扩展程序连接到：<code id="relay-url" style="color: color-mix(in oklab, canvasText 70%, transparent);">http://127.0.0.1:&lt;port&gt;/</code>。
+            仅在您的中继服务器使用不同端口时更改此值。
           </div>
           <div class="status" id="status"></div>
         </div>
@@ -214,22 +231,33 @@
         <!-- Stage 6: Auth Token -->
         <div class="card">
           <h2>Auth Token</h2>
+          <h2 style="color: color-mix(in oklab, canvasText 70%, transparent); font-size: 13px; margin-top: -8px;">认证令牌</h2>
           <label for="token">Token (optional)</label>
+          <label style="color: color-mix(in oklab, canvasText 70%, transparent); margin-top: -4px;">令牌（可选）</label>
           <div class="row">
             <input id="token" type="password" class="wide" placeholder="Leave empty if not required" autocomplete="off" />
+            <input id="token-placeholder" type="text" class="wide" style="opacity: 0; position: absolute; pointer-events: none;" value="如果不需要，请留空" disabled />
             <button id="save-token" type="button">Save</button>
           </div>
           <div class="hint">
             If your relay server requires authentication, enter the token here.
             It will be sent as a query parameter when connecting via WebSocket.
           </div>
+          <div class="hint" style="color: color-mix(in oklab, canvasText 70%, transparent);">
+            如果您的中继服务器需要身份验证，请在此输入令牌。
+            通过 WebSocket 连接时，它将作为查询参数发送。
+          </div>
         </div>
 
         <!-- Stage 7: Chrome startup flags (Plan E) -->
         <div class="card">
           <h2>Recommended Chrome startup flags</h2>
+          <h2 style="color: color-mix(in oklab, canvasText 70%, transparent); font-size: 13px; margin-top: -8px;">推荐的 Chrome 启动标志</h2>
           <p>
             For best anti-detection results, launch Chrome with the following flag:
+          </p>
+          <p style="color: color-mix(in oklab, canvasText 70%, transparent);">
+            为获得最佳的反检测效果，请使用以下标志启动 Chrome：
           </p>
           <div class="info-box">
             <code>--disable-blink-features=AutomationControlled</code>
@@ -238,16 +266,26 @@
             This prevents websites from detecting automation via <code>navigator.webdriver</code> and related Blink-level flags.
             Add this flag to your Chrome shortcut or startup script.
           </p>
+          <p style="color: color-mix(in oklab, canvasText 70%, transparent);">
+            这样可以防止网站通过 <code>navigator.webdriver</code> 和相关 Blink 级标志检测自动化。
+            将此标志添加到您的 Chrome 快捷方式或启动脚本中。
+          </p>
         </div>
 
         <!-- Stage 8: Debug log link -->
         <div class="card">
           <h2>Debug</h2>
+          <h2 style="color: color-mix(in oklab, canvasText 70%, transparent); font-size: 13px; margin-top: -8px;">调试</h2>
           <div class="link-row">
             <a href="log.html" target="_blank">Open debug log panel</a>
+            <span style="color: color-mix(in oklab, canvasText 70%, transparent); margin-left: 8px;">|</span>
+            <a href="log.html" target="_blank" style="margin-left: 8px;">打开调试日志面板</a>
           </div>
           <div class="hint">
             View connection events, attach/detach operations, and error messages.
+          </div>
+          <div class="hint" style="color: color-mix(in oklab, canvasText 70%, transparent);">
+            查看连接事件、附加/分离操作和错误消息。
           </div>
         </div>
       </div>
