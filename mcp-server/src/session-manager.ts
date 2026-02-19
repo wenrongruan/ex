@@ -42,13 +42,34 @@ export class SessionManager {
       }
     }
 
-    // Update URL/title on navigation
+    // Update URL on navigation
     if (event.method === 'Page.frameNavigated') {
       const session = this.sessions.get(event.sessionId);
       if (session) {
         const frame = (event.params as { frame?: { url?: string } }).frame;
-        if (frame?.url) {
-          session.url = frame.url;
+        if (frame?.url) session.url = frame.url;
+      }
+    }
+
+    // Update title when page title changes
+    if (event.method === 'Page.titleUpdated') {
+      const session = this.sessions.get(event.sessionId);
+      if (session) {
+        const title = (event.params as { title?: string }).title;
+        if (title !== undefined) session.title = title;
+      }
+    }
+
+    // Update URL/title via target info changes (covers navigations not caught above)
+    if (event.method === 'Target.targetInfoChanged') {
+      const info = (event.params as { targetInfo?: { targetId?: string; url?: string; title?: string } }).targetInfo;
+      if (info?.targetId) {
+        for (const session of this.sessions.values()) {
+          if (session.targetId === info.targetId) {
+            if (info.url) session.url = info.url;
+            if (info.title !== undefined) session.title = info.title;
+            break;
+          }
         }
       }
     }

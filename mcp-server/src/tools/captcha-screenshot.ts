@@ -82,7 +82,12 @@ export async function captchaScreenshot(
     return { content: [{ type: 'text' as const, text: `未找到元素: ${targetSelector}` }] };
   }
 
-  const rect = JSON.parse(rectStr) as { x: number; y: number; width: number; height: number };
+  let rect: { x: number; y: number; width: number; height: number };
+  try {
+    rect = JSON.parse(rectStr) as { x: number; y: number; width: number; height: number };
+  } catch {
+    return { content: [{ type: 'text' as const, text: `获取元素位置失败: ${targetSelector}` }] };
+  }
 
   const result = await relay.sendCommand('Page.captureScreenshot', {
     format: 'png',

@@ -11,7 +11,7 @@ export interface CDPEvent {
 export class RelayClient extends EventEmitter {
   private ws: WebSocket | null = null;
   private nextId = 1;
-  private pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void }>();
+  private pending = new Map<number, { resolve: (v: unknown) => void; reject: (e: Error) => void; timerId: ReturnType<typeof setTimeout> }>();
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private reconnectDelay = 1000;
   private autoReconnect = true;
@@ -49,14 +49,18 @@ export class RelayClient extends EventEmitter {
     }
 
     return new Promise<void>((resolve, reject) => {
+      let settled = false;
+      const safeReject = (e: Error) => { if (!settled) { settled = true; reject(e); } };
+
       const ws = new WebSocket(wsUrl);
       const timeout = setTimeout(() => {
         ws.terminate();
-        reject(new Error('WebSocket connect timeout'));
+        safeReject(new Error('WebSocket connect timeout'));
       }, 5000);
 
       ws.on('open', () => {
         clearTimeout(timeout);
+        settled = true;
         this.ws = ws;
         this._connected = true;
         this.reconnectDelay = 1000;
@@ -72,7 +76,7 @@ export class RelayClient extends EventEmitter {
       ws.on('close', () => {
         clearTimeout(timeout);
         if (!this._connected) {
-          reject(new Error('WebSocket closed before open'));
+          safeReject(new Error('WebSocket closed before open'));
           return;
         }
         this.onDisconnected('closed');
@@ -81,7 +85,7 @@ export class RelayClient extends EventEmitter {
       ws.on('error', (err) => {
         clearTimeout(timeout);
         if (!this._connected) {
-          reject(new Error(`WebSocket error: ${err.message}`));
+          safeReject(new Error(`WebSocket error: ${err.message}`));
           return;
         }
         this.onDisconnected('error');
@@ -106,22 +110,22 @@ export class RelayClient extends EventEmitter {
     };
 
     return new Promise((resolve, reject) => {
-      this.pending.set(id, { resolve, reject });
-      try {
-        this.ws!.send(JSON.stringify(command));
-      } catch (err) {
-        this.pending.delete(id);
-        reject(err instanceof Error ? err : new Error(String(err)));
-      }
-
-      // Timeout for individual commands
-      setTimeout(() => {
+      const timerId = setTimeout(() => {
         const p = this.pending.get(id);
         if (p) {
           this.pending.delete(id);
           p.reject(new Error(`Command ${method} timed out (30s)`));
         }
       }, 30000);
+
+      this.pending.set(id, { resolve, reject, timerId });
+      try {
+        this.ws!.send(JSON.stringify(command));
+      } catch (err) {
+        clearTimeout(timerId);
+        this.pending.delete(id);
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
     });
   }
 
@@ -166,6 +170,7 @@ export class RelayClient extends EventEmitter {
       const p = this.pending.get(msg.id as number);
       if (!p) return;
       this.pending.delete(msg.id as number);
+      clearTimeout(p.timerId);
       if (msg.error) {
         p.reject(new Error(String(msg.error)));
       } else {
@@ -193,6 +198,7 @@ export class RelayClient extends EventEmitter {
     // Reject all pending
     for (const [id, p] of this.pending.entries()) {
       this.pending.delete(id);
+      clearTimeout(p.timerId);
       p.reject(new Error(`Relay disconnected (${reason})`));
     }
 

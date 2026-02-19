@@ -23,7 +23,7 @@ async function solve2Captcha(apiKey: string, captchaType: string, siteKey: strin
     pageurl: pageUrl,
     json: '1',
   });
-  const submitResp = await fetch(`https://2captcha.com/in.php?${submitParams}`);
+  const submitResp = await fetch(`https://2captcha.com/in.php?${submitParams}`, { signal: AbortSignal.timeout(10000) });
   const submitData = await submitResp.json() as { status: number; request: string };
   if (submitData.status !== 1) {
     throw new Error(`2Captcha 提交失败: ${JSON.stringify(submitData)}`);
@@ -34,7 +34,8 @@ async function solve2Captcha(apiKey: string, captchaType: string, siteKey: strin
   for (let i = 0; i < 24; i++) {
     await new Promise((r) => setTimeout(r, 5000));
     const resultResp = await fetch(
-      `https://2captcha.com/res.php?key=${apiKey}&action=get&id=${taskId}&json=1`
+      `https://2captcha.com/res.php?key=${apiKey}&action=get&id=${taskId}&json=1`,
+      { signal: AbortSignal.timeout(10000) }
     );
     const resultData = await resultResp.json() as { status: number; request: string };
     if (resultData.status === 1) return resultData.request;
@@ -59,6 +60,7 @@ async function solveCapsolver(apiKey: string, captchaType: string, siteKey: stri
   const createResp = await fetch('https://api.capsolver.com/createTask', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    signal: AbortSignal.timeout(10000),
     body: JSON.stringify({
       clientKey: apiKey,
       task: { type: taskType, websiteURL: pageUrl, websiteKey: siteKey },
@@ -77,6 +79,7 @@ async function solveCapsolver(apiKey: string, captchaType: string, siteKey: stri
     const resultResp = await fetch('https://api.capsolver.com/getTaskResult', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      signal: AbortSignal.timeout(10000),
       body: JSON.stringify({ clientKey: apiKey, taskId }),
     });
     const resultData = await resultResp.json() as {

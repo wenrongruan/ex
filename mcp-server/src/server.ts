@@ -26,14 +26,17 @@ export function createServer() {
 
   const server = new McpServer({
     name: 'cdpilot',
-    version: '1.0.0',
+    version: '1.1.0',
   });
 
-  // Connect to relay on first tool call
+  // Connect to relay on first tool call (concurrent-safe: reuse in-flight promise)
+  let connectingPromise: Promise<void> | null = null;
   async function ensureConnected() {
-    if (!relay.connected) {
-      await relay.connect();
+    if (relay.connected) return;
+    if (!connectingPromise) {
+      connectingPromise = relay.connect().finally(() => { connectingPromise = null; });
     }
+    return connectingPromise;
   }
 
   // --- 基础浏览工具 ---

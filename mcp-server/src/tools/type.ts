@@ -8,28 +8,45 @@ export const typeSchema = z.object({
   sessionId: z.string().optional().describe('目标标签页会话ID（不填使用默认）'),
 });
 
-// Common key-to-code/keyCode mappings
+// Physical key info: maps each typeable character to its underlying key's code + keyCode.
+// keyCode follows Windows Virtual Key codes (what browsers expect).
+// Shifted variants (e.g. '@' for '2') share the same physical key as their base character.
+const KEY_MAP: Record<string, { code: string; keyCode: number }> = {
+  ' ': { code: 'Space',        keyCode: 32  },
+  '0': { code: 'Digit0',       keyCode: 48  }, ')': { code: 'Digit0',       keyCode: 48  },
+  '1': { code: 'Digit1',       keyCode: 49  }, '!': { code: 'Digit1',       keyCode: 49  },
+  '2': { code: 'Digit2',       keyCode: 50  }, '@': { code: 'Digit2',       keyCode: 50  },
+  '3': { code: 'Digit3',       keyCode: 51  }, '#': { code: 'Digit3',       keyCode: 51  },
+  '4': { code: 'Digit4',       keyCode: 52  }, '$': { code: 'Digit4',       keyCode: 52  },
+  '5': { code: 'Digit5',       keyCode: 53  }, '%': { code: 'Digit5',       keyCode: 53  },
+  '6': { code: 'Digit6',       keyCode: 54  }, '^': { code: 'Digit6',       keyCode: 54  },
+  '7': { code: 'Digit7',       keyCode: 55  }, '&': { code: 'Digit7',       keyCode: 55  },
+  '8': { code: 'Digit8',       keyCode: 56  }, '*': { code: 'Digit8',       keyCode: 56  },
+  '9': { code: 'Digit9',       keyCode: 57  }, '(': { code: 'Digit9',       keyCode: 57  },
+  '-': { code: 'Minus',        keyCode: 189 }, '_': { code: 'Minus',        keyCode: 189 },
+  '=': { code: 'Equal',        keyCode: 187 }, '+': { code: 'Equal',        keyCode: 187 },
+  '[': { code: 'BracketLeft',  keyCode: 219 }, '{': { code: 'BracketLeft',  keyCode: 219 },
+  ']': { code: 'BracketRight', keyCode: 221 }, '}': { code: 'BracketRight', keyCode: 221 },
+  '\\':{ code: 'Backslash',    keyCode: 220 }, '|': { code: 'Backslash',    keyCode: 220 },
+  ';': { code: 'Semicolon',    keyCode: 186 }, ':': { code: 'Semicolon',    keyCode: 186 },
+  "'": { code: 'Quote',        keyCode: 222 }, '"': { code: 'Quote',        keyCode: 222 },
+  '`': { code: 'Backquote',    keyCode: 192 }, '~': { code: 'Backquote',    keyCode: 192 },
+  ',': { code: 'Comma',        keyCode: 188 }, '<': { code: 'Comma',        keyCode: 188 },
+  '.': { code: 'Period',       keyCode: 190 }, '>': { code: 'Period',       keyCode: 190 },
+  '/': { code: 'Slash',        keyCode: 191 }, '?': { code: 'Slash',        keyCode: 191 },
+};
+
 function getKeyInfo(char: string): { key: string; code: string; keyCode: number } {
   if (char.length === 1) {
     const upper = char.toUpperCase();
-    const code = upper >= 'A' && upper <= 'Z' ? `Key${upper}` :
-      char >= '0' && char <= '9' ? `Digit${char}` :
-        char === ' ' ? 'Space' :
-          char === '.' ? 'Period' :
-            char === ',' ? 'Comma' :
-              char === '/' ? 'Slash' :
-                char === ';' ? 'Semicolon' :
-                  char === "'" ? 'Quote' :
-                    char === '[' ? 'BracketLeft' :
-                      char === ']' ? 'BracketRight' :
-                        char === '-' ? 'Minus' :
-                          char === '=' ? 'Equal' :
-                            char === '\\' ? 'Backslash' :
-                              char === '`' ? 'Backquote' :
-                                `Key${upper}`;
-    const keyCode = char === ' ' ? 32 : char.charCodeAt(0);
-    return { key: char, code, keyCode };
+    if (upper >= 'A' && upper <= 'Z') {
+      // keyCode for letter keys uses the uppercase char code (physical key position)
+      return { key: char, code: `Key${upper}`, keyCode: upper.charCodeAt(0) };
+    }
+    const mapped = KEY_MAP[char];
+    if (mapped) return { key: char, ...mapped };
   }
+  // Non-ASCII or unmapped: key is sufficient for the char event's text field
   return { key: char, code: '', keyCode: 0 };
 }
 

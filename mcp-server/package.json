@@ -1,6 +1,6 @@
 {
   "name": "cdpilot-mcp-server",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "CDPilot MCP Server - Bridge between AI platforms and Chrome via CDP relay",
   "type": "module",
   "main": "dist/index.js",
