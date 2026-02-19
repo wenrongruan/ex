@@ -3,14 +3,13 @@ import type { RelayClient } from '../relay-client.js';
 import type { SessionManager } from '../session-manager.js';
 
 export const typeSchema = z.object({
-  text: z.string().describe('The text to type'),
-  selector: z.string().optional().describe('CSS selector to focus before typing (optional)'),
-  sessionId: z.string().optional().describe('Target tab session ID (uses default if omitted)'),
+  selector: z.string().describe('CSS选择器'),
+  text: z.string().describe('要输入的文本'),
+  sessionId: z.string().optional().describe('目标标签页会话ID（不填使用默认）'),
 });
 
 // Common key-to-code/keyCode mappings
 function getKeyInfo(char: string): { key: string; code: string; keyCode: number } {
-  // For printable characters, use the character itself
   if (char.length === 1) {
     const upper = char.toUpperCase();
     const code = upper >= 'A' && upper <= 'Z' ? `Key${upper}` :
@@ -41,13 +40,19 @@ export async function type(
 ) {
   const sessionId = sessions.resolveSessionId(args.sessionId);
 
-  // Focus the element if selector is provided
-  if (args.selector) {
-    await relay.sendCommand('Runtime.evaluate', {
-      expression: `document.querySelector(${JSON.stringify(args.selector)})?.focus()`,
-      returnByValue: true,
-    }, sessionId);
-  }
+  // Clear existing content and focus element
+  await relay.sendCommand('Runtime.evaluate', {
+    expression: `
+      (function() {
+        const el = document.querySelector(${JSON.stringify(args.selector)});
+        if (el) {
+          el.focus();
+          if ('value' in el) el.value = '';
+        }
+      })()
+    `,
+    returnByValue: true,
+  }, sessionId);
 
   // Type each character using dispatchRealKey for human-like input
   for (const char of args.text) {
@@ -62,7 +67,7 @@ export async function type(
   return {
     content: [{
       type: 'text' as const,
-      text: `Typed "${args.text.length > 50 ? args.text.slice(0, 50) + '...' : args.text}" (${args.text.length} characters).`,
+      text: `已在元素 ${args.selector} 中输入文本`,
     }],
   };
 }

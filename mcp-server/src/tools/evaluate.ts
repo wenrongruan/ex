@@ -3,9 +3,8 @@ import type { RelayClient } from '../relay-client.js';
 import type { SessionManager } from '../session-manager.js';
 
 export const evaluateSchema = z.object({
-  expression: z.string().describe('JavaScript expression to evaluate in the page context'),
-  awaitPromise: z.boolean().optional().default(false).describe('Whether to await the result if it is a Promise'),
-  sessionId: z.string().optional().describe('Target tab session ID (uses default if omitted)'),
+  script: z.string().describe('要执行的 JavaScript 代码'),
+  sessionId: z.string().optional().describe('目标标签页会话ID（不填使用默认）'),
 });
 
 export async function evaluate(
@@ -16,9 +15,9 @@ export async function evaluate(
   const sessionId = sessions.resolveSessionId(args.sessionId);
 
   const result = await relay.sendCommand('Runtime.evaluate', {
-    expression: args.expression,
+    expression: args.script,
     returnByValue: true,
-    awaitPromise: args.awaitPromise,
+    awaitPromise: false,
   }, sessionId) as {
     result?: { type?: string; value?: unknown; description?: string; subtype?: string };
     exceptionDetails?: { text?: string; exception?: { description?: string } };
@@ -26,7 +25,7 @@ export async function evaluate(
 
   if (result?.exceptionDetails) {
     const errMsg = result.exceptionDetails.exception?.description ?? result.exceptionDetails.text ?? 'Unknown error';
-    return { content: [{ type: 'text' as const, text: `JavaScript error: ${errMsg}` }] };
+    return { content: [{ type: 'text' as const, text: `JavaScript 错误: ${errMsg}` }] };
   }
 
   const value = result?.result;

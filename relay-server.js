@@ -136,6 +136,14 @@ function onClientConnected(ws) {
   apiClients.add(ws);
   log(`Client connected (total: ${apiClients.size})`);
 
+  // 通知所有已连接的扩展：有新的 Python 客户端接入
+  // 扩展收到后会重新广播所有已附加标签页，解决 Python 错过历史事件的问题
+  for (const ext of extensionClients) {
+    if (ext.readyState === 1 /* OPEN */) {
+      ext.send(JSON.stringify({ method: 'clientConnected' }));
+    }
+  }
+
   ws.on('message', (data) => {
     const text = String(data);
 

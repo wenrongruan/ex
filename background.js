@@ -120,7 +120,7 @@ function appendLog(level, msg) {
   logBuffer.push(entry)
   if (logBuffer.length > LOG_BUFFER_MAX) logBuffer.shift()
   // Persist to storage (fire-and-forget)
-  chrome.storage.local.set({ _logs: logBuffer }).catch(() => {})
+  chrome.storage.local.set({ _logs: logBuffer }).catch(() => { })
 }
 
 // ── Utilities ──
@@ -152,7 +152,7 @@ function setBadge(tabId, kind) {
   const cfg = BADGE[kind]
   void chrome.action.setBadgeText({ tabId, text: cfg.text })
   void chrome.action.setBadgeBackgroundColor({ tabId, color: cfg.color })
-  void chrome.action.setBadgeTextColor({ tabId, color: '#FFFFFF' }).catch(() => {})
+  void chrome.action.setBadgeTextColor({ tabId, color: '#FFFFFF' }).catch(() => { })
 }
 
 // ── Stage 5: Heartbeat ──
@@ -268,7 +268,7 @@ function onRelayClosed(reason) {
   }
 
   for (const tabId of tabs.keys()) {
-    void chrome.debugger.detach({ tabId }).catch(() => {})
+    void chrome.debugger.detach({ tabId }).catch(() => { })
     setBadge(tabId, 'connecting')
     void chrome.action.setTitle({
       tabId,
@@ -388,6 +388,37 @@ async function onRelayMessage(text) {
     return
   }
 
+  // Stage 11: 新 Python 客户端接入 — 重新广播所有已附加标签页会话
+  // 解决 Python 连接前已附加标签页、错过 Target.attachedToTarget 事件的问题
+  if (msg && msg.method === 'clientConnected') {
+    for (const [tabId, tab] of tabs.entries()) {
+      if (tab.state !== 'connected') continue
+      const info = await chrome.tabs.get(tabId).catch(() => null)
+      try {
+        sendToRelay({
+          method: 'forwardCDPEvent',
+          params: {
+            method: 'Target.attachedToTarget',
+            params: {
+              sessionId: tab.sessionId,
+              targetInfo: {
+                targetId: tab.targetId,
+                type: 'page',
+                title: info?.title || '',
+                url: info?.url || '',
+                attached: true,
+              },
+              waitingForDebugger: false,
+            },
+          },
+        })
+      } catch {
+        // ignore
+      }
+    }
+    return
+  }
+
   if (msg && typeof msg.id === 'number' && msg.method === 'forwardCDPCommand') {
     try {
       const result = await handleForwardCdpCommand(msg)
@@ -418,12 +449,12 @@ function getTabByTargetId(targetId) {
 async function attachTab(tabId, opts = {}) {
   const debuggee = { tabId }
   await chrome.debugger.attach(debuggee, '1.3')
-  await chrome.debugger.sendCommand(debuggee, 'Page.enable').catch(() => {})
+  await chrome.debugger.sendCommand(debuggee, 'Page.enable').catch(() => { })
 
   // Stage 1: Inject stealth script before any navigation
   await chrome.debugger.sendCommand(debuggee, 'Page.addScriptToEvaluateOnNewDocument', {
     source: STEALTH_SCRIPT,
-  }).catch(() => {})
+  }).catch(() => { })
 
   const info = /** @type {any} */ (await chrome.debugger.sendCommand(debuggee, 'Target.getTargetInfo'))
   const targetInfo = info?.targetInfo
@@ -726,6 +757,24 @@ async function handleForwardCdpCommand(msg) {
     return await restoreSession()
   }
 
+  // Stage 10: Custom method — get all attached tabs
+  if (method === 'Extension.getTabs') {
+    const list = []
+    for (const [tabId, tab] of tabs.entries()) {
+      if (tab.state === 'connected') {
+        const info = await chrome.tabs.get(tabId).catch(() => null)
+        list.push({
+          sessionId: tab.sessionId,
+          targetId: tab.targetId,
+          url: info?.url || '',
+          title: info?.title || '',
+          type: 'page',
+        })
+      }
+    }
+    return list
+  }
+
   // Map command to tab
   const bySession = sessionId ? getTabBySessionId(sessionId) : null
   const targetId = typeof params?.targetId === 'string' ? params.targetId : undefined
@@ -783,9 +832,9 @@ async function handleForwardCdpCommand(msg) {
     const tab = await chrome.tabs.get(toActivate).catch(() => null)
     if (!tab) return {}
     if (tab.windowId) {
-      await chrome.windows.update(tab.windowId, { focused: true }).catch(() => {})
+      await chrome.windows.update(tab.windowId, { focused: true }).catch(() => { })
     }
-    await chrome.tabs.update(toActivate, { active: true }).catch(() => {})
+    await chrome.tabs.update(toActivate, { active: true }).catch(() => { })
     return {}
   }
 

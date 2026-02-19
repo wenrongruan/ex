@@ -3,7 +3,7 @@ import type { RelayClient } from '../relay-client.js';
 import type { SessionManager } from '../session-manager.js';
 
 export const switchTabSchema = z.object({
-  sessionId: z.string().describe('Session ID of the tab to activate'),
+  tab_id: z.string().describe('标签页ID（从 get_tabs 获取）'),
 });
 
 export async function switchTab(
@@ -11,21 +11,21 @@ export async function switchTab(
   sessions: SessionManager,
   args: z.infer<typeof switchTabSchema>,
 ) {
-  const session = sessions.getSession(args.sessionId);
+  const session = sessions.getSession(args.tab_id);
   if (!session) {
     return {
-      content: [{ type: 'text' as const, text: `Tab with session "${args.sessionId}" not found.` }],
+      content: [{ type: 'text' as const, text: `未找到标签页: ${args.tab_id}` }],
     };
   }
 
   await relay.sendCommand('Target.activateTarget', {
     targetId: session.targetId,
-  }, args.sessionId);
+  }, args.tab_id);
 
   return {
     content: [{
       type: 'text' as const,
-      text: `Switched to tab: ${session.title || session.url || args.sessionId}`,
+      text: `已切换到标签页: ${session.title || session.url || args.tab_id}`,
     }],
   };
 }

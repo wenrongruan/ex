@@ -4,4 +4,6 @@ export const config = {
   relayEndpoint: process.env.RELAY_ENDPOINT ?? '/client',
   relayToken: process.env.RELAY_TOKEN ?? '',
   httpPort: parseInt(process.env.HTTP_PORT ?? '3000', 10),
+  captchaProvider: process.env.CAPTCHA_PROVIDER ?? '',  // 2captcha 或 capsolver
+  captchaApiKey: process.env.CAPTCHA_API_KEY ?? '',
 };
